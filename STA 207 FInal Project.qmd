@@ -1,0 +1,646 @@
+---
+title: "STAR Dataset: An Analysis of Math Score Results"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc-location: left
+    toc-expand: 1
+    html-math-method: katex
+    css: styles.css
+---
+
+# Abstract
+
+Tennessee's Project STAR was conducted in order to determine the influence of classroom type on academic performance. This report assesses first grade math scores and considers the students' background variable impact on their math standardized test. In particular, the focus of the report is to address race and gender, due to prior resarch on stereotype threat. Race but not gender was found to be associated with first grade math score, where Non-White students had lower scores. Students with free lunch, which is an indicator of socioeconomic background, was also associated with reduced math scores. Small classroom sizes were associated with higher math scores, but findings suggest that the causality assumption of this classroom type treatment may be violated. Overall, background characteristics and classroom types were related to math scores for these first grade students and further research should be conducted on other variables. Additional research and policy implementations have the potential to increase success for Non-White students as well as students from lower-socioeconomic backgrounds.
+
+# Introduction
+
+Academic performance in elementary school can have important long-term repercussions. A scholarly article by Claesens and Engel in the Teachers College Record uses analysis of early education data to determine that kindergarten math skills is an important variable in predicting later academic success in eighth grade (2013). This illustrates the longer-term importance of success in early education on student success later on in their academic career. Improving student success within elementary school could benefit students both in the short-term and potentially in the long-term as well. It is therefore paramount to understand what improvements can be made to help students succeed within thier early education.
+
+One such consideration of how to help students succeed is through studying the effects of class size on academic performance. It was shown by Boozer and Rouse that the number of students assigned to a class, that is the class size is associated with a consequence in negative test scores (2001). In a scientific study published in the Journal of Urban Economics, students belonging to a larger class size in the 8th grade had test scores that were associated with worsened outcomes, whereas smaller class sizes were associated with better test outcomes (Boozer & Rouse, 2001). This note-worthy idea that class-size can be associated with impaired student academic performance, combined with Claesens and Engels research on the importance of early schooling illustrates the recently examined significance of determining whether or not class-size is important in earlier education years for students (2013).
+
+It is of particular importance to mention the potential repercussions of stereotype threat, which is known to impair racial minority groups scores on math exams as well as female-identifying scores. In a scientific report by Ryan and Ryan, it was discussed that Black and female students had impaired standardized mathematics exam scores (2005). Even when grades were overall higher in mathematics for girls versus boys, their exam scores were found to be lower. Importantly, the study found that even after controlling for other background variables, Black students had lower mathematics performance than White students. Stereotype threat causes lower scores on mathematics exams due to societal beliefs and stereotypes about certain groups of people being less capable at mathematics (Ryan & Ryan, 2005).
+
+Overall, it is shown that race and gender may effect math performance (Ryan & Ryan, 2005). In addition, classroom size may be an important variable in regards to academic performance (Boozer & Rouse, 2001. Early academic performance can also have important long-term consequences (Claesens & Engel, 2013). Therefore, researching the effect of background characteristics in the STAR study on early elementary math scores is of utmost importance so that student performance can be prioritized for racial minorities or people from a Non-White background.
+
+## Dataset & Questions of Interest
+
+There are many reasons for wanting to help improve academic performance, and this is what Tennessee sought to improve in 1985 when a study was funded by the Tennessee legislation, through House Bill (HB) 544 (Finn et al., 2007). This study is known as Project Star. Project STAR was a study designed to examine if classroom type: regular-sized, small, or regular-sized with an aide had an impact on student performance (Finn et al., 2007).
+
+1.  Assignment into a small classroom meant the classroom had between 13 and 17 students (Achilles, 2012).
+
+2.  A regular classroom held between 22 and 25 students.
+
+3.  The third type of classroom was a regular-sized classroom with 22-25 students that included an aide (Achilles, 2012).
+
+In addition to the classroom type, data on many variables was recorded to describe student and teacher background as well as different measures of student success over the years. Although there are many ways to define student success, this project focuses on scaled math scores for standardized exams that students at each school took, specifically in the first grade.
+
+Participant variables included gender and ethnicity (Finn et al., 2007). Also relevant background variables were whether students had free lunch, where a higher proportion of these students were in an inner-city type school. In addition, location of the school within Tennessee as well as the schools themselves needed to belong to one of the following four groups: “inner-city, suburban, urban, and rural”. Belonging to an inner-city location meant at least half of students had free or reduced lunch, so this variable is associated with student socio-economic background (Finn et al., 2007).
+
+**For the purposes of this project, there are two initial primary questions of interest. In addition, there is an added primary focus.**
+
+1.  The first primary question of interest is if there's a significant difference in the scaled math scores for the type of classroom: small, regular, and regular with an aide. Per the initial analysis, findings have shown that classroom type as well as school id had a significant effect on average math scaled score per teacher.
+
+2.  The secondary question of interest asks which class type has the highest mean scaled math scores. Specifically, belonging to a smaller classroom type yielded higher average scaled math scores per teacher, per the initial analysis results.
+
+3.  The initial analysis report illustrated the two above results. The added primary focus is to assess if student background variables are associated with first-grade math score.
+
+```{r}
+#| echo: false
+#| include: false
+library(haven)
+library(lme4)
+library(AER)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(knitr)
+library(lme4)
+library(kableExtra)
+library(car)
+library(qwraps2)
+library(summarytools)
+library(gplots)
+library(knitr)
+library(nortest)
+library(MASS)
+library(plotly)
+library(glmnet)
+
+```
+
+```{r}
+#| echo: false
+#| include: false
+starData <- read_sav("C:/Users/Moust/Desktop/STA 207/STAR/PROJECT STAR/STAR_Students.sav")
+
+
+#Flags in the data indicate the presence or absence of particular sets of variables (e.g., whether the student attended a STAR school in each grade from K-3; whether high school transcript data were available for the student). These flags help users select subsets of data for secondary analysis
+
+```
+
+```{r}
+#| echo: false
+#| include: false
+print(colnames(starData))
+starData$g1absent <- as_factor(starData$g1absent)
+starData$g1surban<- as_factor(starData$g1surban)
+starData$g1tchid <-as_factor(starData$g1tchid)
+starData$g1classtype <- as_factor(starData$g1classtype)
+starData$FLAGSGK <-as_factor(starData$FLAGSGK)
+starData$flaggk <-as_factor(starData$flaggk)
+
+starData$g1schid <-as_factor(starData$g1schid)
+starData$FLAGSG1 <-as_factor(starData$FLAGSG1)
+starData$g1speced <- as.factor(starData$g1speced)
+starData$g1specin <-as_factor(starData$g1specin)
+starData$race <-as_factor(starData$race)
+starData$gkclasstype <-as_factor(starData$gkclasstype)
+starData$g2classtype <-as_factor(starData$g2classtype)
+
+#VarsForEDA <- starData[,c("",  "g1tgen", "g1trace", "g1thighdegree",   
+# "g1tcareer", "g1tyears","g1classsize","g1freelunch",  "g1speced","g1specin",  "how",  "g1treadss", "g1tmathss",  #"g1tlistss", "g1wordskillss",    "g1readbsraw",  "g1mathbsraw",  "g1readbsobjraw",  "g1mathbsobjraw",   "g1readbsobjpct", #  "g1mathbsobjpct",   "g1motivraw", "g1selfconcraw")]
+```
+
+```{r}
+#| echo: false
+#| include: false
+
+#levels(starData$FLAGSG1)
+#sum(starData$g1specin =='YES')
+#levels(starData$g1specin)
+#sum(starData$g1specin =='YES')
+#which(starData$g1speced=="1")
+#specEdYes <- starData %>% filter(starData$FLAGSG1=="YES")
+#sum(starData$FLAGSG1=="YES")
+#specEdNo <- starData %>% filter(starData$g1speced=="2")
+#mean(na.omit(specEdYes$g1tmathss))
+#mean(na.omit(specEdNo$g1tmathss))
+```
+
+## Background & Motivation
+
+Determining whether classroom size affects test performance was of interest in Tennessee (Finn et al., 2007). As mentioned above, in 1985 research was funded after the Tennessee Legislature passed a bill that would evaluate whether this was the case (Finn et al., 2007). In the 1980s classroom performance was a focus of concern (Ritter & Boruch, 1999). Tennessee itself had Lamar Alexander, the governor of Tennessee, who prioritized education for his new term that began in 1982. In addition, there was a scientific paper published in 1982 that supported limiting classroom size to 15 students, which House of Representative Cobb used to conclude that reducing classroom size by just a few students would not matter. Lamar Alexander then implemented a reform in 1984 that helped allow research to be conducted, which aided the development of Project Star (Ritter & Boruch, 1999).
+
+Project Star's modification of classroom type was conducted from 1985 to 1989 in Tennessee on 11,601 students in kindergarten through third-grade for at least one year (Finn et al., 2007). Each school needed to have at least 57 students, so of the 180 schools that wanted to participate, around 100 were eligible. With these constrictions, as well as schools needing specific location variation by legislation in Tennessee's districts, at most 79 schools participated out of the 180 for each of the four years (Finn et al., 2007).
+
+# Experimental Design of Project STAR
+
+## 1) Randomization
+
+Project Star's experimental design consisted of a randomized assignment to classroom type to place students into the three types of classrooms (Finn et al., 2007). Randomized assignment was also used to assign the teachers themselves to the classroom conditions (Finn et al., 2007). Randomly assigning both teachers and students to classroom type can help account for different background characteristics that may interfere with understanding classroom type's effect on math scores. The act of randomly assigning both students and teachers for classroom type allows for more statistically sound results.
+
+#### Potential Issues with Randomization:
+
+Although randomization occurred, there are several notable issues with randomization in this experiment.
+
+1.  Around half of students assigned into a regular class in kindergarten were assigned to a regular class with an aide in first grade and vice-versa (Finn et al., 2007). This decision was made since there hadn't been significant effects in the first year of the study (Finn et al., 2007). Although the number of students who switched class types in other years was small, as noted in the next potential issue with randomization, this means that after removing missing data, almost 40 percent of students were randomly reassigned. This is an issue because it means that small classroom students who were present had an additional year of staying in the same classroom size.
+
+2.  Some students switched classroom types after their initial assignment was made despite experiment procedure calling for students to remain in their assigned classroom type. However, the number of students who switched is relatively small: excluding missing data for the calculations, less than 1 percent (approximately 0.089) students switched from first to second grade and less than 1 percent (approximately 0.76) percent of the students switched from second to third grade. Since the number of students was so small who switched grades, it can be accepted that this impact on our results is relatively small. Therefore, it is not of further interest to pursue this matter in this report.
+
+    ```{r}
+    #| echo: false
+    #| include: false
+    #| warning: false
+    numberStudentsWhoSwitched <- sum(starData$gkclasstype!=starData$g1classtype, na.rm=TRUE)
+    numberNoStudentsWhoSwitched <- sum(starData$gkclasstype==starData$g1classtype, na.rm=TRUE)
+
+    numberStudentsWhoSwitched1 <- sum(starData$g1classtype!=starData$g2classtype, na.rm=TRUE)
+    numberNoStudentsWhoSwitched1 <- sum(starData$g1classtype ==starData$g2classtype, na.rm=TRUE)
+
+
+    numberStudentsWhoSwitched2 <- sum(starData$g2classtype!=starData$g3classtype, na.rm=TRUE)
+    numberNoStudentsWhoSwitched2 <- sum(starData$g2classtype==starData$g3classtype, na.rm=TRUE)
+
+    percentSwitch <-numberStudentsWhoSwitched/(numberNoStudentsWhoSwitched+numberStudentsWhoSwitched)
+    percentSwitch1<-numberStudentsWhoSwitched1/(numberNoStudentsWhoSwitched1+numberStudentsWhoSwitched)
+    percentSwitch2<-numberStudentsWhoSwitched2/(numberNoStudentsWhoSwitched2+numberStudentsWhoSwitched)
+
+    print(c(percentSwitch,percentSwitch1,percentSwitch2))
+    ```
+
+#### Conclusion on Randomization:
+
+Although randomization occurred within the study, there was some issues throughout the study that had interfered with true randomization. Due to the large number of observations for first grade math scores, where the data shows that 6,829 students were recorded to have attended first grade in the STAR program, since randomization was followed to a high enough level, we can conclude the randomization assumption is met.
+
+## 2) Type of School
+
+As mentioned prior, the schools needed to meet predetermined criterion. There was a minimum amount of students required, and the geographical location of the school was taken into account. In addition, another important criterion was needing urban, rural, inner-city and suburban schools. This allowed for representation of different geographical and demographic representation through Tennessee to be included.
+
+**Issues with school related criterion:**
+
+1.  Schools chosen do not necessarily represent the population of schools available. 180 schools wanted to participate, but 80 were excluded due to not having enough students attending the school itself. They also needed to meet the legislation's criteria, as mentioned in the introduction (Finn et al., 2007). Since the schools were able to participate based off these criterion, this introduces school level impacts on results, even while randomization did occur at the classroom level. In addition, four eligible schools ended up withdrawing due to being unable to maintain randomization or unable to complete all paperwork required for the STAR experiment. This further illustrates how characteristics associated with schools can impact which schools participate (Finn et al., 2007).
+
+2.  Although there was random assignment at the class level, regardless of school attended, there was differences within the four school types that legislation required: urban, rural, inner-city, and suburban. Each school type can have differences in participant variables within that school. This was accounted for in the model in the initial analysis, but it is still important to keep in mind.
+
+3.  One notable limitation, as mentioned in the Star User's Guide, is that kindergarten was not mandatory, so students may have attended school and STAR beginning in first grade (Finn et al., 2007). This is something to be further assessed, because the effect of peers having one less year of education could interfere with study results. Although randomization into classroom assignment still occurred, this result of amount of students who attended kindergarten at the school level is not random. If some schools have a higher number of children who did not attend kindergarten, then an additional influence is made upon the results.
+
+    #### Conclusion on Type of School:
+
+    The effect of school attended can impact the backgrounds within each classroom, regardless of random assignment. This can create a difference in success. Since schools were included across different locations and backgrounds, this helped ensure representation of students was in place. However, there was not full representation of Tennessee's schools due to requirements on the number of students who needed to be attending the school.
+
+# Caveats
+
+## Initial Analysis Report Results:
+
+Using a two-way fixed effects anova model, the initial analysis result found two important results.
+
+1.  When considering average scaled math score per classroom as the response variable, with school id in the model, classroom type had a significant relationship with the math scores. This key finding illustrated the significance of small classroom type on math score, because small classroom type was associated with improved scores.
+
+2.  With classroom type in the model, the results also showed that school id was significantly associated with average math score per classroom. The school attended was shown to be important within the model and to carry information explaining the variability in math scores.
+
+## Questions Raised By The Caveats:
+
+The initial analysis report showed the significance of class type, where small class-size was significantly associated with scaled average classroom math scores. These findings were important; however, grouping the data by classroom eliminated the ability to assess individual student characteristics on success. As mentioned in the introduction, scientific studies have shown the impact of stereotype threat on exam scores. There are participant and societal characteristics that can effect success on the exam, and if an understanding is gained of what these variables are, future decisions or research can ensure supporting these groups.
+
+### School Id Characteristics:
+
+The information on the school selection process allows an important question to arise. *Can the background characteristics that cause school id to be associated with classroom mean math score be isolated?* In other words, it is of interest to account for the student background variables that are associated with school id in order to more fully understand the effect of school id on math scores for the first grade students. This can allow a better understanding of what classroom level characteristics are associated with higher math scores. If these variables are understood, then participant level characteristics can be more easily examined. It is of therefore interest to understand the characteristics of the students within the Project STAR so that policy recommendations or further research can help improve student success.
+
+#### Student Background Effects:
+
+The variation in math scores that is explained by school id would be much more informative if it was clearly understood which student characteristics within the school attended are important. Randomization occurred at the classroom and school level; however, even though randomization occurred the schools themselves were significantly associated with mean math score in first grade, so it is important to understand what differences between the students and their backgrounds are associated with math score.
+
+#### **Kindergarten Status**
+
+There was one variable that I would like to consider first, which is kindergarten attendance. One of the experimental design considerations mentioned how kindergarten attendance varied due to it not being a requirement in Tennessee at the time (Finn et al., 2007). If this varied across schools, then isolating whether or not kindergarten attendance per school effects classroom mean math scores could be beneficial to understanding what variables could impact math score. As kindergarten attendance is more common now, it could be more relevant to current research to include this information if there is an impact. This way, some of the variability in the data due to students not attending kindergarten could be explained.
+
+However, whether or not students attended kindergarten does not appear to be recorded for the data set. *Project Star and Beyond: Database User's Guide* mentioned that there was a variable for kindergarten status; however, the caveat was that the variable recorded kindergarten status only if the children had attended a STAR school. This means that if students attended another school, information is missing.
+
+With this information in mind, we cannot accurately assess whether a student attended kindergarten. However, another claim can be made. We can examine whether or not there was a benefit of being in the STAR program the year before first grade. This will allow information to be gained as to whether attending STAR for the year prior was beneficial to student performance outcomes the next year.
+
+```{r}
+#| echo: false
+#| include: false
+library(tidyverse)
+
+#I am looking at g1surban but should also look for that they attended school that year
+kindergartenAttendence<-starData %>% group_by(g1schid) %>% summarise(propAttendKind=sum(FLAGSGK=="YES", na.rm=TRUE)/(sum(FLAGSGK=="YES", na.rm=TRUE)+sum(FLAGSGK=="NO", na.rm=TRUE)), meanMathBySchool= mean(g1tmathss, na.rm=TRUE)) 
+  
+kindergartenAttendenceT<-starData %>% group_by(g1surban) %>% summarise(propAttendKind=sum(FLAGSGK=="YES", na.rm=TRUE)/(sum(FLAGSGK=="YES", na.rm=TRUE)+sum(FLAGSGK=="NO", na.rm=TRUE)), meanMathBySurban =mean(g1tmathss))    
+
+#Group by classroom 
+kindergartenAttendenceTeacher<-starData %>% group_by(g1tchid, g1classtype, na.rm=TRUE)  %>%  summarise(propAttendKind=sum(FLAGSGK=="YES", na.rm=TRUE)/(sum(FLAGSGK=="YES", na.rm=TRUE)+sum(FLAGSGK=="NO", na.rm=TRUE)), meanMathByClass= mean(g1tmathss, na.rm=TRUE)) 
+
+
+#plot for class
+kPlotClass<- ggplot(na.omit(kindergartenAttendenceTeacher), aes(x = propAttendKind, y = meanMathByClass, color = g1classtype)) +
+  geom_point(alpha=0.6, drop=TRUE) + theme_minimal() + facet_wrap(~g1classtype, nrow = 1, drop=TRUE) +
+  labs(title = "Math Score by Kindergarten Status",
+       x = "Proportion Of Classroom that Attended STAR Kindergarten",
+       y = "Mean Math Score Per Classroom")
+
+kPlotTYPE<- ggplot(kindergartenAttendenceT, aes(x = g1surban, y = propAttendKind, fill = g1surban)) +
+  geom_bar(stat = "identity") + theme_minimal() +
+  labs(title = "Proportion of Kindergarten Attendence by School Type",
+       x = "School Type",
+       y = "Proportion Students")
+
+```
+
+**Lunch Status: An Indicator of Socioeconomic Background**
+
+One student characteristic is their lunch-status, which recorded whether students had a free lunch. This can help us to understand their household or family income, as this could be an important characteristic that is related to math scores.
+
+**Race**
+
+Another student characteristic is race, which is important to understand if there is a relationship between race and first grade math score. In order to be able to make meaningful conclusions on ethnicity, race was separated into two categories: Non-White and White, because there was not enough data concerning the rest of the ethnicity. With only 9 observations for Hispanic and 9 observations for Native American, meaningful statistical conclusions cannot be made with such little information. The following table illustrates why this decision was made.
+
+```{r}
+#| echo: false
+
+library(forcats)
+#table for count per ethnicithy
+sumRaceGby <- starData%>% filter(FLAGSG1=="YES") 
+sumRace <-as.data.frame(summary(sumRaceGby$race))
+colnames(sumRace) <- c("Count in First Grade")
+print(sumRace)
+
+```
+
+```{r}
+#| echo: false
+#g1schid
+starData$race <- as_factor(starData$race)
+starData$race <- fct_recode(starData$race, 'NON-WHITE' =  'BLACK', 'NON-WHITE'='ASIAN', 'NON-WHITE'='HISPANIC', 'NON-WHITE'='NATIVE AMERICAN', 'NON-WHITE'='OTHER')
+
+ethnicityData<-starData %>% filter(!is.na(race))
+
+plotEthn<- ggplot(ethnicityData, aes(x = race, y = g1tmathss, fill = race)) +
+  geom_violin(alpha=0.6, drop=TRUE) + theme_minimal()  +
+  labs(title = "Violin Plot of Math Score by Race",
+       x = "Race",
+       y = "Math Score Per Student")
+starData$gender <- as_factor(starData$gender)
+genderData<-starData %>% filter(!is.na(gender))
+levels(starData$gender)
+plotGender<- ggplot(genderData, aes(x = gender, y = g1tmathss, fill = gender)) +
+  geom_violin(alpha=0.6, drop=TRUE) + theme_minimal()  +
+  labs(title = "Violin Plot of Math Score by Gender",
+       x = "Gender",
+       y = "Math Score Per Student")
+plotEthn <-ggplotly(plotEthn)
+plotGender<- ggplotly(plotGender)
+```
+
+#### **Gender**
+
+Gender is another variable that has mentioned to be impacted by stereotype threat, so assessing distributions of first grade math scores across the two recorded genders is of interest. The results can help us to understand whether student gender is significant in regards to math score.
+
+### **Interaction Terms**
+
+If specific background characteristics are shown to be important, it is additionally of interest to understand if these characteristics interact with classroom policy. For instance, as mentioned in the introduction, race and gender has previously been shown to be related to math performance. If these participant characteristics benefit more from having a smaller classroom type, then policy makers can use this information ensure students are given the education style that is more likely to ensure their success. Therefore, it is of interest to consider the importance of background variables and their interaction with classroom type.
+
+### Regular Classroom With An Aide:
+
+One issue with Project Star that I would like to focus on is the results of regular classroom with an aide. The results of the initial analysis report illustrated that not having an aide was not significantly associated with first grade math score. However, caution in interpretation of results for regular-classroom with an aide is recommended. Classroom scores on a math exam are not the only significant results of having an aide and further research could illustrate other means of importance. Although this is not the focus of the report, it is important to mention.
+
+# Exploratory Data Analysis
+
+For the purposes of Exploratory Data Analysis, variables mentioned within the *Caveats* section are assessed. It is of interest to determine whether these variables appear to have a relationship with classroom type and whether they should be included in the model. The main variables that will be explored are classroom type, kindergarten status, lunchroom status, race and gender.
+
+### Classroom Type
+
+As mentioned previously, the results of classroom type on math score were shown to be significant, with small classroom type associated with an increase in student math score. The following plot illustrates the distribution of math score across the classroom type. Visually, it does appear that small classroom type has a higher median level of data. Classroom type above the upper quantile also appears to hold more data for the small classroom type compared to regular and regular with an aide.
+
+```{r}
+#| echo: false
+
+dataForClass <- starData %>%filter(!is.na(g1classtype))
+
+plotClassType<- ggplot(dataForClass, aes(x = g1classtype, y = g1tmathss, fill = g1classtype)) +
+  geom_violin(alpha=0.6)  +
+  labs(title = "Violin Plot of Math Score by Classroom Type",
+       x = "Classroom Type",
+       y = "Math Score per Student")
+plotClassType
+```
+
+### Kindergarten Status
+
+The below figure assesses the relationship of attending the STAR school in kindergarten. The proportion of each classroom who attended kindergarten is measured against the mean math score per classroom. This illustrates how there was still a large spread of the data across math scores per each classroom, regardless of prior kindergarten attendance. However, there appears to be a potential pattern, with more data at a higher math score as proportion of kindergarten students increases, illustrating that a relationship is possible.
+
+In addition, the data is separated by classroom type, to view if there is a difference across the classroom type. Small classroom type has several mean math scores above 600, with is more than both types of regular classrooms. This variable of interest appears worth pursuing further.
+
+```{r}
+#| echo: false
+
+ggplotly(kPlotClass)
+```
+
+### Lunch
+
+A violin plot illustrates the distribution of math scores on the student level across lunchroom status. The distribution of math scores for students that do not have a free lunch appears higher on average, so participant variables, such as socioeconomic characteristics appear to potentially be relevant in explaining the variability in the data. The tail of the distribution is noteworthy as well, illustrating more students who do not have a free lunch achieving a higher math score than students who have a free lunch.
+
+```{r}
+#| echo: false
+
+starData$g1freelunch=as_factor(starData$g1freelunch)
+dataForLunch <- starData %>%filter(!is.na(g1freelunch))
+
+ggplot(dataForLunch, aes(x = g1freelunch, y = g1tmathss, fill = g1freelunch)) + geom_violin(alpha=0.6, drop=TRUE) + theme_minimal()  +
+  labs(title = "Violin Plot of Math Score by Lunchroom Status",
+       x = "Lunchroom Status",
+       y = "Math Score Per Student")
+
+```
+
+### Race
+
+Per the following figure, the mean for White students' first grade math scores is higher. In addition, the tail of the distribution illustrates further differences between White and Non-White student math scores. Although both Non-White and White students have around the same score for the upper quantile of data, there is more data at a higher score in the tail of White students and more data at a lower score in the tail of Non-White students. Investigation of race appears to be imperative in order to make future decisions that ensure Non-White students receive equitable assistance in first grade math.
+
+```{r}
+#| echo: false
+
+plotEthn
+```
+
+### Gender
+
+The following figure illustrates that the distributions of math scores across gender appear very similar. However, the tail of female is more narrow than the tail of male, although the visible difference is slight. This variable is still important to test for in our model to validate whether or not gender was important on these first grade math scores. If findings show gender is not statistically significant in the model, that is still important information to have for policy decisions.
+
+```{r}
+#| echo: false
+
+plotGender
+```
+
+```{r}
+#| echo: false
+
+starData$FLAGSGK=as.factor(starData$FLAGSGK)
+
+```
+
+### **Interaction Terms**
+
+The initial analysis report has shown the significance of classroom type on classroom level math scores. Classroom type is the main condition that is being modified, and a major focus of this paper. It is of interest to examine classroom type's interaction on the other variables of interest: race, gender, lunchroom status, and kindergarten attendance within star. Interaction plots were made to assess the interaction between each main background variable we are assessing against classroom type.
+
+The first two plots are used to assess the interaction between race and classroom type as well as gender and classroom type. The lines for math score between classroom types are parallel across race, which indicates that there does not appear to be an interaction effect between race and classroom type on math score. However, it does appear that the gap between small classroom type and regular classroom type across math scores is slightly wider for Non-White students then it is for White students. In addition, for the interaction plot regarding gender, the lines representing regular and regular with an aide classroom type are fairly parallel across the genders. However, small classroom type status shows a decrease in math score for female students compared to male. Neither graph appears to show a strong interaction effect, but there potentially is some sort of significant interaction when considering the above mentioned details.
+
+```{r}
+#| echo: false
+
+colors <- c("small"="blue", "reg"="orange", "reg+aide"="green")
+data_race <- starData %>%filter(!is.na(race)&!is.na(g1classtype) &!is.na(g1tmathss))
+data_gender <- starData %>%filter(!is.na(gender)&!is.na(g1classtype) &!is.na(g1tmathss))
+
+interaction.plot(data_race$race, data_race$g1classtype, data_race$g1tmathss, col=colors, cex.lab=1.5, ylab="Grade 1 Math Score", xlab="Race")
+title("Classroom vs Race")
+
+
+```
+
+```{r}
+#| echo: false
+
+interaction.plot(data_gender$gender, data_gender$g1classtype, data_gender$g1tmathss, col=colors, cex.lab=1.5, ylab="Grade 1 Math Score", xlab="Gender")
+title("Classroom vs Gender")
+```
+
+The next two figures assess the potential interaction between classroom type and the other two variables of interest: lunchroom status (free vs non-free lunch) and kindergarten status (attended vs did not attend STAR in kindergarten). The lines representing the interaction effect across math scores are fairly parallel across both plots; however, there are some important details. Students who attended STAR in Kindergarten appear to show a higher improvement when assigned to a small classroom than students who did not attend STAR in kindergarten compared. This is shown due to the line representing small classroom type having a wider gap between the regular classroom types for students that had attended STAR previously, compared to the other students. The green line representing regular classroom status with an aide is further away from regular classroom type for students who had not attended STAR in kindergarten, which means that they possibly benefited from having an aide more than students who attended kindergarten. For the interaction plot assessing lunchroom status against classroom type, the lines are again very much parallel, so there likely is not a significant interaction type. However, there is a slightly wider gap between the small and regular classroom types for students who did not have a free lunch in comparison to students who had a free lunch. This indicates that it is possible these students benefited more from small classroom type.
+
+```{r}
+#| echo: false
+
+colors <- c("small"="blue", "regular"="orange", "regular+aide"="green")
+kinder<- starData %>%filter(!is.na(FLAGSGK)&!is.na(g1classtype) &!is.na(g1tmathss))
+lunch <- starData %>%filter(!is.na(g1freelunch)&!is.na(g1classtype) &!is.na(g1tmathss))
+
+interaction.plot(kinder$FLAGSGK, kinder$g1classtype, kinder$g1tmathss, col=colors, cex.lab=1.5, ylab="Grade 1 Math Score", xlab="Kinder Status")
+title("Classroom vs Kindergarten Status")
+
+
+
+
+```
+
+```{r}
+#| echo: false
+
+interaction.plot(lunch$g1freelunch, lunch$g1classtype, lunch$g1tmathss, col=colors, cex.lab=1.5, ylab="Grade 1 Math Score", xlab="Lunch Status")
+title("Classroom vs Lunch")
+```
+
+It is of interest to determine the effect of these background variables on performance, because each interaction plot shows a significant effect of interaction terms is not very likely. However, in order to rule this conclusion out, a model was fitted on variables of interest with their interaction terms included within the model. The p-values can be interpreted, where the null hypothesis claims that the coefficients are equal to zero and should not be included in the model. A large p-value supports this null hypothesis.
+
+The model results follow, where every interaction term has a p-value greater than 0.05, so at a significance level of alpha=0.05, we can conclude that the interaction terms are not statistically significant in the model that includes main effects. With this information in mind, in addition to the information gained by the interaction plots, it is not of interest to include interaction terms in the model. The following table illustrates these results.
+
+```{r}
+#| echo: false
+starData$gender <- as_factor(starData$gender)
+starData$g1classtype <- as_factor(starData$g1classtype)
+starData$g1schid <- as_factor(starData$g1schid)
+starData$race <- as_factor(starData$race)
+starData$g1freelunch <- as_factor(starData$g1freelunch)
+starData$FLAGSGK <- as_factor(starData$FLAGSGK)
+
+finalIntModel <- lm(g1tmathss~gender*g1classtype+race*g1classtype+g1freelunch*g1classtype+FLAGSGK*g1classtype+g1schid,starData)
+finalIntModelDisplay <- as.data.frame(anova(finalIntModel),type=3)
+
+finalIntModelDisplay<-kable(finalIntModelDisplay, caption="Anova Results", digits=5)
+finalIntModelDisplay
+```
+
+### Conclusion on Exploratory Data Analysis:
+
+Based off the data we have considered for the other variables, main effects will be prioritized over inclusion of interaction terms. Interaction terms do not appear to be significant, and they are not the focus of this report. The main effect terms considered are based off of background information due to researching stereotype threat as well as information conveyed in the prior plots. The variables of interest are: race, gender, kindergarten Star school status, and lunchroom status.
+
+# Proposed Model
+
+The goal of the model is to use information discovered in the Caveats and the Exploratory Data Analysis sections to help isolate what variables are important to math score, since classrooms differ across schools. Our current variables of interest include: classroom type, kindergarten attendance, race, and lunchroom status. It is additionally necessary to include school indicator to account for additional variability that our model has not researched between the different schools.
+
+### **Chosen Model**
+
+$$Y_{o} = \mu_ + \alpha_{i} + \beta_{j} +\gamma_{k} + \delta_{l} + \zeta_{m}+\eta_{n}+\epsilon_{o}$$
+
+### Notation
+
+-   $Y_o$ is the response of the *oth* student, where this represents that specific student's math score in the first grade
+
+-   $\mu$ is the overall effect across the rest of the factors, where it is a weighted average due to the data being unbalanced.
+
+-   $\alpha_i$ is the fixed effect of the *ith* gender (female or male) on the math score.
+
+-   $\beta_j$ is the fixed effect of the *jth* race on the student math score, where levels represent White or Non-White.
+
+-   $\gamma_k$ is the fixed effect of the *kth* lunchroom status on the student math score, where levels represent free lunchroom or non-free lunchroom status.
+
+-   $\delta_l$ is the random effect of the *lth* Project STAR kindergarten status on the student math score.
+
+-   $\zeta_m$ is the fixed effect of the *mth* classroom type on the student math score, where levels classroom type status: small, regular, or regular with an aide.
+
+-   $\eta_n$ is the fixed effect of the nth school id on the student math score, where levels represent which specific school students attended.
+
+-   $\epsilon_o$ is the random error term associated with each student that represents that students specific fluctuation or deviation in math score that is not explained by the model.
+
+### **Model Assumptions**
+
+The model assumes the following:
+
+-   The random error terms follow a normal distribution, with a mean of zero.
+
+-   The random error terms have a constant variance.
+
+-   The random error terms are independently distributed.
+
+-   $\delta_l$ is independently and identically distributed, with a normal distribution, a constant variance and a mean of 0.
+
+-   $\delta_l$ and the random error terms are independent from each other.
+
+### Model Justification
+
+The chosen model is a Type 2 ANOVA model, which is appropriate for assessment of the data because of the variables that were selected. Selecting an ANOVA model allows people from other fields to interpret the results that have been found. Using a factor-effects ANOVA model with main effects allows for an understanding to be gained of how each explanatory variable impacts the math score. There were less than ten variables chosen, which means that an ANOVA can be appropriate for this task. As there are not too many variables, it is not necessary to select another model, such as linear regression. As discussed previously, interaction terms were not necessary due to their limited effect in explaining variance within the data.
+
+In addition, the model is a mixed effects model. Fixed effects were mainly included in the model, but so was a random effect. The fixed effects can be justified due to the pre-determination of the levels of the variables selected. For instance, school id was not random, and the schools selected were pre-determined, as mentioned previously in this report. The other variables of interest were race, gender, and lunchroom status which were all predetermined levels. Lunchroom status in particular was a variable that was pre-determined, since schools were selected based off the amount of people with free lunch (Finn et al, 2007). Kindergarten status, representing rather a student was in a Project STAR school the year before, is a random effect since it was not pre-determined who entered the STAR program the year before.
+
+# Model Results
+
+### Fixed Effect Results
+
+The final model illustrates the significance of many of the variables. The p-values can be assessed to determine which variables are important in the model. The null hypothesis for each p-value is that the coefficient is equal to 0, given the other variables are in the model. Using a level of significance of alpha=0.05, it can be determined which variables are statistically significant in the model with student math score as the response variable. The following table displays the results of the model's fixed effects predictor variables, excluding school id variables. Due to space, these are included in the appendix section.
+
+![Final Model Results](C:/Users/Moust/Pictures/207Results.jpg)
+
+#### Race
+
+Specifically, race was significantly associated with math score, at a level of alpha=0.05. The p-value is less than 0.001, so at a level of alpha=0.05 the null hypothesis that the coefficient for race is equal to 0 can be rejected. This means that we can't exclude race has a significant effect on math score. Specifically, the given estimate for Non-White students is approximately -17.05. The confidence interval is between -20.51 and -13.58. Since zero is not in the confidence interval, it can be concluded that on average Non-White students are expected to have a lower math score between -20.51 and -13.51 points less than White students.
+
+#### Gender
+
+Since the p-value for gender is approximately 0.998, we fail to reject the null hypothesis at level alpha is 0.05 and conclude that we cannot exclude gender has no significant effect on math score. On average, there is no effect expected on math score due to gender.
+
+#### Lunch Status
+
+Lunch status is statistically significant within our model. The p-value of less than .001 is less than alpha = 0.05, so we can reject the null hypothesis that the coefficient for lunch status is equal to 0. We can conclude that lunch status has a significant relationship with classroom math score. On average, it is expected that students without free lunch are expected to have higher math scores than students with free lunch by approximately 17.22 points.
+
+#### Classroom Type
+
+Both the coefficient for regular and regular with an aide classroom types are statistically significant within our model. Since both p-values are less than 0.01, at a level equal to alpha=0.05, we can conclude that classroom type is associated with student math score. Specifically, the estimate for regular classroom is approximately -11.48, which means that on average students who are in a regular classroom are expected to score about 11.48 points less than students in a small classroom. Students in a regular classroom with an aide are expected to score 9.39 points less than students who are in a small classroom.
+
+```{r}
+#| echo: false
+library(sjPlot)
+finalModelProj <- lmer(g1tmathss~gender+race+g1freelunch+(1|FLAGSGK)+g1classtype+g1schid,starData)
+#sjPlot:: tab_model(finalModelProj)
+
+```
+
+### Random Effects Results
+
+#### **Kindergarten Status**
+
+Since kindergarten status is a mixed effect within the model, it is of interest to test whether or not the variance is equal to zero to determine if kindergarten status should be kept within the model. An F-Test was conducted to determine whether the model was a better fit without kindergarten status.
+
+-   The null hypothesis is that the variance of Project Star kindergarten status equals zero.
+
+-   The alternative hypothesis is that the variance of Project Star kindergarten status does not equal 0.
+
+-   The p-value is approximately 6.068e-07, which is less than alpha =0.05.
+
+-   Under significance level of alpha=0.05, we conclude that we can reject the null hypothesis and support that the variance of kindergarten status does not equal zero.
+
+-   **Result**: Kindergarten status is significant within the model and including it helps explain some of the variability within math scores, where attending Project Star the year before is associated with an improved result, with scores estimated to be 17.17 points higher for these students.
+
+```{r}
+#| echo: false
+full_model<-finalModelProj
+reduced_model<-(lm(g1tmathss~gender+race+g1freelunch+g1classtype+g1schid,starData))
+#anova(finalModelProj,fixedModel)
+
+ranResults <- as.data.frame(anova(full_model,reduced_model))
+ranResults<-kable(ranResults, caption="Anova Results: Including vs Not Including Kindergarten Status", digits=5)
+ranResults
+```
+
+### **Causal Results**
+
+In order to determine if the results found are causal, certain issues need to be addressed. Firstly, there are confounding factors within this study. The focus of my report was on first grade math performance results, and several issues were mentioned in the experimental design section that I believe interfere with the experiment results.
+
+Firstly, randomization failed. As mentioned in the caveats section, there was random reassignment of almost 40 percent of STAR participants who were in Project STAR in kindergarten during first grade from regular to regular with an aide class types and vice versa. This issue makes it difficult to interpret the results of first grade math scores due to regular-aide class type. The students who were in small classroom type in kindergarten had the advantage of an additional year in this classroom type. This has the potential to influence the results since more students in the regular classroom with an aide type have less time with an aide than small classroom type students.
+
+In addition, there is missing data on whether or not students attended kindergarten. This is a confounding factor that could influence the results because students who did not attend kindergarten may be more likely to have lower math scores.
+
+Finally, the study was not double-blind, which means that both parents and teachers, and likely the students themselves were aware that smaller class sizes should mean an advantage. Even though teachers and students were randomly assigned to their respective classroom type, there are a few potential issues that could have occurred. For instance, expectations of students, parents, or even teachers could have interfered with results, among other factors. If teachers had an expectation that their regular-classroom students without an aide would be less likely to succeed compared to small classrooms, this could have led to teachers expecting less of their students than small classroom teachers expected.
+
+### **Deviations From Initial Analysis**
+
+One deviation I would like to address is the results of regular classroom-aide. I did not address the regular classroom results in much detail in the initial analysis report, but the results were significant in this report. In the initial analysis report, my results found that the regular classroom-aide variable was not statistically significant in the model. On a student response variable level, with other background variables in the model, regular classroom with an aide was statistically significant. In regards to math score in first grade, students in the small classroom type scored significantly higher than these students in a regular-sized classroom with an aide.
+
+# Model Diagnostics & Sensitivity Analysis
+
+## Assumption Checks:
+
+### Normal Distribution
+
+One of the assumptions of the model is the normality assumption, which assumes a normal distribution of error terms. In order to assess this assumption, a QQ plot can be visualized. If the distribution is normal, then the sample quantiles should follow the theoretical quantiles in the plot. The results of the plot illustrate that the distribution is fairly normal; however, it is a heavy-tailed distribution with outliers almost four standard deviations away from the mean. Due to the large sample size and approximate normality, this is not a concern for our results.
+
+```{r}
+#| echo: false
+
+finalModelProj <- lmer(g1tmathss~gender+race+g1freelunch+(1|FLAGSGK)+g1classtype+g1schid,starData)
+residuals<- resid(finalModelProj)
+qqnorm(residuals)
+
+```
+
+### Constant Variance
+
+Another model assumption is constant variance of the error terms, which can be assessed using a residuals vs fitted values plot. The variance of the following plot appears fairly constant; however, there appears to be some sort of pattern in the data. There is more variability towards the right of the plot, and the residuals are lined up in the upper-right corner. This pattern suggests that model does not account for all of the effects of the data. It could be beneficial to include other variables in the model, perhaps ones associated with the type of school or with the teachers themselves.
+
+```{r}
+#| echo: false
+
+fitted <- fitted(finalModelProj)
+plot(finalModelProj, which=1)
+
+```
+
+### Independence
+
+The next model assumption to be assessed is the independence assumption. Due to the randomization of students independence can be assumed, although there were some issues with randomization, as noted previously. However, on a large scale randomization was followed, as mentioned in the introduction and caveats section. This and the large sample size allows results for this study to be interpreted, and this assumption to be met.
+
+# Discussion
+
+The main focus of this project was to focus the main effects of student background on first grade math scores from Tennessee's STAR project. Several variables were found to be significantly associated with math score, but there are some limitations to this report that should be addressed.
+
+### Findings & Limitations
+
+Race, Project Star kindergarten status, lunch status and class type were all found to be significant within the model. Due to concerns over confounding variables, it may be better to assume causality was violated; however, these results are still very important. Since background variables are associated with math score, and it was discussed in the introduction that early math score can impact future performance, it is imperative that work continues on this topic. In the interest of equity, as much work and policy decisions should be conducted as possible in order to minimize math performance disparity for Non-White students and students associated with a lower socioeconomic background.
+
+Other variables of interest were gender and kindergarten status. Gender was not found to be statistically significant within the model; however, further research could be conducted to ensure that in later years math scores are not impacted by gender. In addition, kindergarten status within Project Star was assessed and found to be an important variable. Although kindergarten status explains variance within math scores for the first graders, there is missing data for whether students attended kindergarten at all. If such data existed, this would be vary helpful to interpret model results and determine whether Project Star status was significant when all data on kindergarten status was available.
+
+This report was limited to understanding the effect of Project Star student characteristics on first grade math score, but focusing more on teacher background and other variables associated with school type could also be important.
+
+# Conclusion
+
+Overall, results have shown the importance of classroom size on first grade math scores within this study. Having a smaller classroom size was significantly associated with an increase in math scores. In addition, there were important variables for participants that were associated with math score in first grade. White students had higher math scores than Non-White students. In addition, lunch status was also associated with math scores: having a free lunch meant an increased likelihood of a lower math score than someone who did not have free lunch. Finally, kindergarten status played a role, where it was found that attending a project Star school the year before was significant within the model.
+
+# References
+
+Achilles, C. M., (2012). *Class-Size Policy: The STAR Experiment and Related Class-Size Studies* (Vol 1, 2). NCPEA publications. <https://eric.ed.gov/?id=ED540485>
+
+Boozer M., & Cecilia Rouse C. (2001). Intraschool Variation in Class Size: Patterns and Implications, Journal of Urban Economics, 50(1),163-189. https://doi.org/10.1006/juec.2001.2216.
+
+Claessens, A., & Engel, M. (2013). *How Important is Where You Start? Early Mathematics Knowledge and Later School Success.* Teachers College Record, 115(6), 1-29. <https://doi.org/10.1177/016146811311500603>
+
+Finn, J.D., Boyd-Zaharias, J., Fish, R.M.,& Gerber S.B. (2007). *Project STAR and Beyond: Database User's Guide* Heros, Incorporated. https://archive.org/details/manualzilla-id-6879919/mode/2up
+
+Ryan, K. E., & Ryan, A. M. (2005). *Psychological Processes Underlying Stereotype Threat and Standardized Math Test Performance*. Educational Psychologist, 40(1), 53–63. <https://doi.org/10.1207/s15326985ep4001_4>
+
+Ritter, G. W., & Boruch, R. F. (1999). *The Political and Institutional Origins of a Randomized Controlled Trial on Elementary School Class Size: Tennessee’s Project STAR.* Educational Evaluation and Policy Analysis, 21(2), 111-125. <https://doi.org/10.3102/01623737021002111> 
+
+Mudge, Laura (2019). Visualizing Mixed-Effects Models. <https://lmudge13.github.io/sample_code/mixed_effects.html>
+
+# Appendix
+
+```{r}
+sjPlot:: tab_model(finalModelProj)
+```
+
+# Acknowledgement
+
+This course project was aided with help from two University of California, Davis professionals: Dr. Shizhe Chen and Mr. Yanhao Jin. Attendence of their lectures, discussion sections and office hours all aided this report.
+
+In addition, ideas were discussed with classmates Samantha DeMars and Ivan Karpov.
